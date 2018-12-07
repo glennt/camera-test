@@ -6,6 +6,7 @@
     "react": "^16.6.3",
     "react-autobind": "^1.0.6",
     "react-dom": "^16.6.3",
+    "react-fontawesome": "^1.6.1",
     "react-scripts": "2.1.1",
     "react-webcam": "^1.0.4",
     "recordrtc": "^5.4.8"
