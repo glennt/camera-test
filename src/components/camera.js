@@ -5,29 +5,30 @@ import CameraVideo from "./cameraVideo";
 
 class Camera extends React.PureComponent {
 
-    constructor(props) {
-        super(props);
-        autoBind(this);
-        this.state = {
-        }
-    }
+	constructor(props) {
+		super(props);
+		autoBind(this);
+		this.state = {
+			mode: this.props.mode ? this.props.mode : "video"
+		}
+	}
 
-    render() {
+	render() {
 
-        let component;
-        if(this.state.mode === "video") {
-            component = <CameraVideo />
-        } else {
-            component = <CameraImage />
-        }
+		let component;
+		if (this.state.mode === "video") {
+			component = <CameraVideo />
+		} else {
+			component = <CameraImage />
+		}
 
 
-        return(
-            <div className="camera-container">
-                {component}
-            </div>
-        )
-    }
+		return (
+			<div className="camera-container">
+				{component}
+			</div>
+		)
+	}
 }
 
 export default Camera;

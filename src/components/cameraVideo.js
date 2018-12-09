@@ -1,125 +1,111 @@
-import React, { Component } from 'react';
+import React from 'react';
 import Webcam from "react-webcam";
 import autoBind from "react-autobind";
 import RecordRTC from "recordrtc";
-
-const VIDEO_MODE = "video";
-const IMAGE_MODE = "image";
+import FontAwesome from "react-fontawesome";
+import {
+	Button
+} from "react-bootstrap";
+import _ from "lodash";
 
 class Camera extends React.PureComponent {
 
-    constructor(props) {
-        super(props);
-        autoBind(this);
-        this.state = {
-            video: {
-                recording: false
-            },
-            image: {
+	constructor(props) {
+		super(props);
+		autoBind(this);
+		this.state = {
+			recording: false,
+			preview: false
+		}
+	}
 
-            }
-        }
-    }
+	startRecording() {
+		let stream = this.webcam.stream;
 
-    takeScreenshot() {
-        const imageSrc = this.webcam.getScreenshot();
+		let recorder = new RecordRTC(stream, { type: 'video' });
+		recorder.startRecording();
 
-        this.setState({
-            mode: "image",
-            imagePreview: imageSrc
-        })
-    }
+		this.setState({
+			mode: "video",
+			recorder: recorder,
+			recording: true
+		});
+	}
 
-    startRecording() {
-        let stream = this.webcam.stream;
+	stopRecording() {
+		let recorder = this.state.recorder;
 
-        let recorder = new RecordRTC(stream, { type: 'video' });
-        recorder.startRecording();
+		recorder.stopRecording(() => {
 
-        this.setState({
-            mode: "video",
-            recorder: recorder,
-            recording: true
-        })
-    }
+			this.setState({
+				recording: false,
+				preview: true,
+				videoPreviewUrl: recorder.toURL()
+			});
+		});
+	}
 
-    stopRecording() {
-        let recorder = this.state.recorder;
+	handleAccept() {
+		let recorder = this.state.recorder;
 
-        recorder.stopRecording(() => {
+		if (this.props.onAccept) {
+			this.props.onAccept({
+				type: "video",
+				blob: recorder.getBlob()
+			});
+		}
+	}
 
-            this.setState({
-                recording: false,
-                videoPreviewUrl: recorder.toURL()
-            })
+	handleRetake() {
+		let recorder = this.state.recorder;
+		if (!_.isUndefined(recorder)) {
+			recorder.clearRecordedData();
+		}
+		this.setState({
+			preview: false,
+			recording: false,
+			recorder: undefined
+		});
+	}
 
-        });
-    }
+	renderCapture() {
+		let startRecordingButton = (this.state.recording === false) ? <div style={{ color: "red", fontSize: "48px" }}><FontAwesome name="circle" onClick={this.startRecording} style={{ cursor: "pointer" }} /></div> : null;
+		let stopRecordingButton = (this.state.recording) ? <div style={{ color: "#a3a3a3", fontSize: "48px" }}><FontAwesome onClick={this.stopRecording} name="stop-circle" style={{ cursor: "pointer" }} /></div> : null;
 
-    render() {
+		return (
+			<div className="camera-container">
+				<div style={{ display: "flex", flexDirection: "column" }}>
+					<div>
+						<Webcam ref={e => this.webcam = e} />
+					</div>
+					{startRecordingButton}
+					{stopRecordingButton}
+				</div>
+			</div>
+		);
+	}
 
-        let component;
-        if(this.state.mode === VIDEO_MODE) {
-            component = this.renderVideoMode();
-        } else {
-            component = this.renderImageMode();
-        }
+	renderPreview() {
+		return (<div className="camera-container">
+			<div style={{ display: "flex", flexDirection: "column" }}>
+				<div>
+					<video src={this.state.videoPreviewUrl} controls />
+				</div>
+				<div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between" }}>
+					<Button onClick={this.handleRetake}>Retake</Button>
+					<Button onClick={this.handleAccept} bsStyle="primary">Accept</Button>
+				</div>
+			</div>
+		</div>)
+	}
 
-
-        return(
-            <div className="camera-container">
-                {component}
-            </div>
-        )
-    }
-
-
-    renderModeButtons() {
-
-    }
-
-    renderVideoMode() {
-        return <div></div>
-    }
-
-
-
-
-
-    renderImageMode() {
-
-        let imagePreview;
-        if (this.state.imagePreview && this.state.mode === "image") {
-            imagePreview = <img src={this.state.imagePreview}></img>;
-        }
-
-        let videoPreview;
-        if (this.state.videoPreviewUrl && this.state.mode === "video") {
-            videoPreview = <video src={this.state.videoPreviewUrl} controls />;
-        }
-
-        let startRecordingButton = (this.state.recording === false) ? <button onClick={this.startRecording}>Start recording</button> : null;
-        let stopRecordingButton = (this.state.recording) ? <button onClick={this.stopRecording}>Stop recording</button> : null;
-
-        return (
-            <div className="camera-container">
-                <div>
-                    <div>
-                        <Webcam ref={e => this.webcam = e} />
-                    </div>
-                    <button onClick={this.takeScreenshot}>Take Screenshot</button>
-                    {startRecordingButton}
-                    {stopRecordingButton}
-                </div>
-                <div>
-                    <p>Preview</p>
-                    {imagePreview}
-                    {videoPreview}
-                </div>
-            </div>
-
-        );
-    }
+	render() {
+		if (this.state.preview) {
+			return this.renderPreview();
+		} else {
+			return this.renderCapture();
+		}
+	}
 }
 
 export default Camera;
