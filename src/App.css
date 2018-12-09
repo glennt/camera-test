@@ -28,6 +28,17 @@
   flex-direction: column;
 }
 
+.camera-mode-button {
+	font-size: 12px;
+	color: #a3a3a3;
+	cursor: pointer;
+	margin: 6px;
+}
+
+.camera-mode-button-selected {
+	color: #0074d9;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
